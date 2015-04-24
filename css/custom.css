@@ -1,9 +1,112 @@
+html, body {
+  height: 100%;
+}
+
 .page-container {
   display: flex;
   height: 100%;
 }
 
+
+
+.visualization {
+  background-image: url("../images/grid.png");
+  height: 100%;
+  flex-grow: 1;
+}
+
+.canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
+
+rect {
+  fill: steelblue;
+  fill-opacity: .8;
+  stroke: white;
+}
+
+
+
 .sidebar {
   background-color: #222735;
-  width: 350px;
+  overflow: hidden;
+  flex-basis: 350px;
+}
+
+.sidebar .container {
+  margin-left: 48px;
+  margin-right: 48px;
+}
+
+.logos {
+  background-image: url("../images/logos.png");
+  height: 52px;
+  margin-top: 72px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 178px;
+}
+
+.h1, .h2, .h3 {
+  margin-bottom: 0;
+  margin-top: 0;
+}
+
+
+.tasks-total .value {
+  font-size: 96px;
+  line-height: 113px;
+}
+
+.tasks-total .description {
+  font-size: 32px;
+  line-height: 38px
+}
+
+.tasks-total {
+  margin-top: 93px;
+  margin-bottom: 50px;
+}
+
+
+
+.marathon-tasks .value,
+.spark-tasks .value,
+.cassandra-tasks .value {
+  font-size: 64px;
+  line-height: 76px;
+}
+
+.marathon-tasks .value {
+  color: #E82A78;
+}
+
+.spark-tasks .value {
+  color: #28C268;
+}
+
+.cassandra-tasks .value {
+  color: #F4B826;
+}
+
+
+.marathon-tasks .description,
+.spark-tasks .description,
+.cassandra-tasks .description {
+  color: #fff;
+  font-size: 24px;
+  line-height: 28px;
+}
+
+.task {
+  margin-bottom: 27px;
+}
+
+@media (min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .logos {
+    background-image: url("../images/logos@2x.png");
+    background-size: 178px 52px;
+  }
 }
