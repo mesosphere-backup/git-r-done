@@ -1,0 +1,155 @@
+body {
+  font-family: 'Source Sans Pro', sans-serif;
+  user-select: none;
+}
+
+.bg-dark { background-color: #222734; }
+.bg-white { background-color: #ffffff; }
+
+.noselect {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.app-container {
+  display: flex;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+}
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 210px;
+  padding: 50px 50px;
+  user-select: none;
+}
+
+.count-with-label {
+  cursor: pointer;
+}
+
+.count-with-label h1,
+.count-with-label p {
+  color: white;
+  user-select: none;
+}
+
+.count-with-label h1 {
+  margin: 25px 0 0;
+  font-size: 55px;
+  font-weight: 300;
+}
+
+.count-with-label p {
+  margin: 0;
+  font-size: 22px;
+}
+
+.total-count h1 {
+  font-size: 80px;
+}
+
+.total-count p {
+  font-size: 30px;
+}
+
+.task-counts {
+  flex: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.logo {
+  height: 65px;
+}
+
+.grid {
+  flex: 1;
+  display: flex;
+  padding: 80px 0;
+  background-image: url('/assets/grid.png');
+  -webkit-align-items: center;
+          align-items: center;
+  -webkit-justify-content: center;
+          justify-content: center;
+  -webkit-flex-flow: row wrap;
+          flex-flow: row wrap;
+  -webkit-align-content: flex-start;
+          align-content: flex-start;
+}
+
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.axis {
+  font: 10px sans-serif;
+}
+
+.axis text {
+  -webkit-transition: fill-opacity 250ms linear;
+}
+
+.axis path {
+  display: none;
+}
+
+.axis line {
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.horizon {
+  border-bottom: solid 1px #000;
+  overflow: hidden;
+  position: relative;
+}
+
+.horizon {
+  border-top: solid 1px #000;
+  border-bottom: solid 1px #000;
+}
+
+.horizon + .horizon {
+  border-top: none;
+}
+
+.horizon canvas {
+  display: block;
+}
+
+.horizon .title,
+.horizon .value {
+  bottom: 0;
+  line-height: 30px;
+  margin: 0 6px;
+  position: absolute;
+  text-shadow: 0 1px 0 rgba(255,255,255,.5);
+  white-space: nowrap;
+}
+
+.horizon .title {
+  left: 0;
+}
+
+.horizon .value {
+  right: 0;
+}
+
+.line {
+  background: #000;
+  opacity: .2;
+  z-index: 2;
+}

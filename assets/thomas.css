@@ -1,0 +1,14 @@
+html, body {
+  height: 100%;
+}
+
+.canvas {
+  height: 100%;
+  width: 100%;
+}
+
+rect {
+  fill: steelblue;
+  fill-opacity: .8;
+  stroke: white;
+}
