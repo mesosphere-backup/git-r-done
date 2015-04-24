@@ -4,7 +4,11 @@ MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 REFRESH = true;
 INTERVAL = 2000;
 
+
 $(function() {
+
+  var diff = DeepDiff.diff;
+
 
   var url = MESOS_MASTER + "state.json"
 
@@ -26,8 +30,12 @@ $(function() {
   var fetchState = function(cb) {
     $.getJSON(url + "?jsonp=?").done(function(data) {
       $("body").trigger("new_data",
-        [_.map(data.frameworks, get_tasks)]);
-      // _.delay(cb, INTERVAL);
+        [_.reduce(data.frameworks, function(acc, fw) {
+          var tasks = get_tasks(fw);
+          acc[tasks.name] = tasks.task_count;
+          return acc;
+        }, {})]);
+      _.delay(cb, INTERVAL);
     });
   };
 
@@ -42,62 +50,91 @@ $(function() {
     .attr("height", height)
     .append("g");
 
-
   var translation = 0;
 
-  var add_box = function(n) {
+  var total = 0;
 
-    var r = Math.floor(Math.ceil(Math.sqrt(n))/2);
-    var l = (r*2) + 1;
-    var ring_index = n - Math.pow(l-2, 2) -1;
+  var add_box = function() {
 
-    var matrix = [
-      [[-r, r], [1, 0]],
-      [[r, r], [0, -1]],
-      [[r, -r], [-1, 0]],
-      [[-r, -r], [0, 1]]
-    ];
+    total += 1;
+    var coords = [0, 0];
+    var r = 0;
+    var l = 0;
+    var ratio = 1;
 
-    var base = matrix[Math.floor(ring_index/(l-1))];
-    var mult = ring_index % (l - 1);
+    // XXX - OFF BY ONE BITCHES
+    if (total > 1) {
 
-    var x = base[0][0] + base[1][0] * mult;
-    var y = base[0][1] + base[1][1] * mult;
+      var n = total;
+
+      r = Math.floor(Math.ceil(Math.sqrt(n))/2);
+      l = (r*2) + 1;
+      var ring_index = n - Math.pow(l-2, 2) -1;
+
+      var matrix = [
+        [[-r, r], [1, 0]],
+        [[r, r], [0, -1]],
+        [[r, -r], [-1, 0]],
+        [[-r, -r], [0, 1]]
+      ];
+
+      var base = matrix[Math.floor(ring_index/(l-1))];
+      var mult = ring_index % (l - 1) + 1;
+
+      coords = [
+        base[0][0] + base[1][0] * mult,
+        base[0][1] + base[1][1] * mult
+      ];
+
+      ratio = height / (l * dh);
+    }
 
     vis.append("svg:rect")
-      .attr("x", x * dh)
-      .attr("y", y * dh)
+      .attr("x", coords[0] * dh + dh/2)
+      .attr("y", coords[1] * dh + dh/2)
+      .attr("width", 0)
+      .attr("height", 0)
+      .transition()
+      .duration(500)
+      .attr("x", coords[0] * dh)
+      .attr("y", coords[1] * dh)
       .attr("width", dh)
-      .attr("height", dh)
+      .attr("height", dh);
 
-    vis.attr("transform", "translate(" + [dh*r, dh*r] + ")");
+    vis.interrupt()
+      .transition()
+      .duration(500)
+      .attr("transform",
+        "translate(" + [dh*r*ratio, dh*r*ratio] + ")scale(" + ratio + ")");
   };
 
+  var remove_box = function() {
 
-  // _.each(_.range(2,30+1), function(n) {
+  };
 
-  //   add_box(n);
-
-  // });
+  add_box();
 
   var state = [ {}, {} ];
 
-  var diff_tasks = function(prev, now) {
-
-    return _.map(now, function(fw) {
-
-      var old = _.find(prev, function(f) { return f.name == fw.name })
-
-    });
-
-  };
-
   var handle_updates = function(e, tasks) {
-
     state.shift();
     state.push(tasks);
 
+    var changes = diff(state[0], state[1]);
 
+    _.each(changes, function(c) {
+      console.log(c);
+
+      if (c.kind == "N") {
+        _.each(_.range(c.rhs), add_box);
+      }
+
+      if (c.kind == "E") {
+
+
+        _.each(_.range(c.rhs - c.lhs), add_box);
+      }
+    });
 
   };
 
