@@ -3,6 +3,7 @@ MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 
 REFRESH = true;
 INTERVAL = 2000;
+BOX_DURATION = 0;
 
 
 $(function() {
@@ -54,13 +55,21 @@ $(function() {
 
   var total = 0;
 
+  var shortest = function() {
+    return _.sortBy([width, height], function(n) { return n })[0];
+  };
+
+  var ratio = shortest() / (dh + 50);
+
+  // vis.attr("transform",
+  //   "translate(" + [ dh*ratio, dh*ratio ] + ")scale(" + ratio +")");
+
   var add_box = function() {
 
     total += 1;
     var coords = [0, 0];
     var r = 0;
-    var l = 0;
-    var ratio = 1;
+    var l = 1;
 
     // XXX - OFF BY ONE BITCHES
     if (total > 1) {
@@ -86,7 +95,6 @@ $(function() {
         base[0][1] + base[1][1] * mult
       ];
 
-      ratio = height / (l * dh);
     }
 
     vis.append("svg:rect")
@@ -95,26 +103,44 @@ $(function() {
       .attr("width", 0)
       .attr("height", 0)
       .transition()
-      .duration(500)
+      .duration(BOX_DURATION)
       .attr("x", coords[0] * dh)
       .attr("y", coords[1] * dh)
       .attr("width", dh)
       .attr("height", dh);
 
+    var ratio = shortest() / (l * dh);
+    var edge = dh*r*ratio;
+
     vis.interrupt()
       .transition()
-      .duration(500)
+      .duration(1000)
       .attr("transform",
-        "translate(" + [dh*r*ratio, dh*r*ratio] + ")scale(" + ratio + ")");
+        "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   };
 
   var remove_box = function() {
+    var elem = d3.select(vis.selectAll("rect")[0].pop());
 
+    var coords = [
+      parseFloat(elem.attr("x")),
+      parseFloat(elem.attr("y"))
+    ];
+
+    elem
+      .transition()
+      .duration(BOX_DURATION)
+      .attr("x", coords[0] + dh/2)
+      .attr("y", coords[1] + dh/2)
+      .attr("width", 0)
+      .attr("height", 0)
+      .remove();
   };
 
-  add_box();
-
   var state = [ {}, {} ];
+
+  _.each(_.range(10), add_box);
+  add_box();
 
   var handle_updates = function(e, tasks) {
     state.shift();
@@ -122,19 +148,20 @@ $(function() {
 
     var changes = diff(state[0], state[1]);
 
-    _.each(changes, function(c) {
-      console.log(c);
+    // _.each(changes, function(c) {
+    //   console.log(c);
 
-      if (c.kind == "N") {
-        _.each(_.range(c.rhs), add_box);
-      }
+    //   if (c.kind == "N") {
+    //     _.each(_.range(c.rhs), add_box);
+    //   }
 
-      if (c.kind == "E") {
+    //   if (c.kind == "E") {
+    //     var mod = c.rhs - c.lhs;
+    //     var fn = mod > 0 ? add_box : remove_box;
 
-
-        _.each(_.range(c.rhs - c.lhs), add_box);
-      }
-    });
+    //     _.each(_.range(mod), fn);
+    //   }
+    // });
 
   };
 
