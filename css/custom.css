@@ -1,0 +1,9 @@
+.page-container {
+  display: flex;
+  height: 100%;
+}
+
+.sidebar {
+  background-color: #222735;
+  width: 350px;
+}

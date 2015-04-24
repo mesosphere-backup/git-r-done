@@ -2,12 +2,49 @@
 <html>
 <head>
   <title> ___ </title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <link href='http://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400' rel='stylesheet' type='text/css'>
   <link rel='stylesheet' href='assets/thomas.css'>
+  <link rel='stylesheet' href='css/main.css'>
+  <link rel='stylesheet' href='css/custom.css'>
 </head>
 <body>
 
-  <div class="canvas">
+  <div class="page-container">
+
+    <div class="sidebar">
+      <div class="logos"></div>
+
+      <div class="tasks-wrapper">
+
+        <div class="tasks-total">
+          <label class="h1 value inverse">2</label>
+          <div class="h2 description">Total Tasks</div>
+        </div>
+
+        <div class="marathon-tasks">
+          <label class="h2 value inverse">2</label>
+          <div class="h3 description">marathon-tasks</div>
+        </div>
+
+        <div class="spark-tasks">
+          <label class="h2 value inverse">0</label>
+          <div class="h3 description">spark-tasks</div>
+        </div>
+
+        <div class="cassandra-tasks">
+          <label class="h2 value inverse">0</label>
+          <div class="h3 description">cassandra-tasks</div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="visualization">
+      <div class="canvas">
+      </div>
+    </div>
+
   </div>
 
   <script src='js/d3.min.js'></script>
