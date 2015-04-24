@@ -83,7 +83,7 @@ $(function() {
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   }
 
-  var add_box = function() {
+  var add_box = function(name) {
 
     total += 1;
     var coords = [0, 0];
@@ -121,6 +121,7 @@ $(function() {
 
     vis.append("svg:rect")
       .classed("show", true)
+      .classed(name, true)
       .attr("x", coords[0] * dh + dh/2)
       .attr("y", coords[1] * dh + dh/2)
       .attr("width", 0)
@@ -174,14 +175,16 @@ $(function() {
       console.log(c);
 
       if (c.kind == "N") {
-        _.each(_.range(c.rhs), add_box);
+        _.each(_.range(c.rhs),
+          _.bind(add_box, this, c.path[0]));
       }
 
       if (c.kind == "E") {
         var mod = c.rhs - c.lhs;
         var fn = mod > 0 ? add_box : remove_box;
 
-        _.each(_.range(Math.abs(mod)), fn);
+        _.each(_.range(Math.abs(mod)),
+          _.bind(fn, this, c.path[0]));
       }
     });
 
