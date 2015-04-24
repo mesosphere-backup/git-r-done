@@ -3,7 +3,7 @@ MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 
 REFRESH = true;
 INTERVAL = 2000;
-BOX_DURATION = 0;
+BOX_DURATION = 2000;
 
 
 $(function() {
@@ -59,10 +59,29 @@ $(function() {
     return _.sortBy([width, height], function(n) { return n })[0];
   };
 
-  var ratio = shortest() / (dh + 50);
+  var ratio = shortest() / dh;
 
-  // vis.attr("transform",
-  //   "translate(" + [ dh*ratio, dh*ratio ] + ")scale(" + ratio +")");
+  vis.attr("transform",
+    "translate(" + [ 0, 0 ] + ")scale(" + ratio +")");
+
+  var calculate_size = function(n) {
+
+    var r = Math.floor(Math.ceil(Math.sqrt(n))/2);
+    var l = (r*2) + 1;
+
+    return [r, l];
+  };
+
+  var set_canvas = function(r, l) {
+    var ratio = shortest() / (l * dh);
+    var edge = dh*r*ratio;
+
+    vis.interrupt()
+      .transition()
+      .duration(1000)
+      .attr("transform",
+        "translate(" + [edge , edge] + ")scale(" + ratio + ")");
+  }
 
   var add_box = function() {
 
@@ -76,8 +95,11 @@ $(function() {
 
       var n = total;
 
-      r = Math.floor(Math.ceil(Math.sqrt(n))/2);
-      l = (r*2) + 1;
+      var size = calculate_size(n);
+
+      r = size[0];
+      l = size[1];
+
       var ring_index = n - Math.pow(l-2, 2) -1;
 
       var matrix = [
@@ -98,6 +120,7 @@ $(function() {
     }
 
     vis.append("svg:rect")
+      .classed("show", true)
       .attr("x", coords[0] * dh + dh/2)
       .attr("y", coords[1] * dh + dh/2)
       .attr("width", 0)
@@ -109,18 +132,11 @@ $(function() {
       .attr("width", dh)
       .attr("height", dh);
 
-    var ratio = shortest() / (l * dh);
-    var edge = dh*r*ratio;
-
-    vis.interrupt()
-      .transition()
-      .duration(1000)
-      .attr("transform",
-        "translate(" + [edge , edge] + ")scale(" + ratio + ")");
+    set_canvas(r, l);
   };
 
   var remove_box = function() {
-    var elem = d3.select(vis.selectAll("rect")[0].pop());
+    var elem = d3.select(vis.selectAll("rect.show")[0].pop());
 
     var coords = [
       parseFloat(elem.attr("x")),
@@ -128,6 +144,7 @@ $(function() {
     ];
 
     elem
+      .classed("show", false)
       .transition()
       .duration(BOX_DURATION)
       .attr("x", coords[0] + dh/2)
@@ -135,12 +152,17 @@ $(function() {
       .attr("width", 0)
       .attr("height", 0)
       .remove();
+
+    total -= 1;
+    var size = calculate_size(total);
+    set_canvas(size[0], size[1]);
   };
 
   var state = [ {}, {} ];
 
-  _.each(_.range(10), add_box);
-  add_box();
+  //_.each(_.range(100), add_box);
+  // add_box();
+  // _.delay(remove_box, 2000);
 
   var handle_updates = function(e, tasks) {
     state.shift();
@@ -148,20 +170,20 @@ $(function() {
 
     var changes = diff(state[0], state[1]);
 
-    // _.each(changes, function(c) {
-    //   console.log(c);
+    _.each(changes, function(c) {
+      console.log(c);
 
-    //   if (c.kind == "N") {
-    //     _.each(_.range(c.rhs), add_box);
-    //   }
+      if (c.kind == "N") {
+        _.each(_.range(c.rhs), add_box);
+      }
 
-    //   if (c.kind == "E") {
-    //     var mod = c.rhs - c.lhs;
-    //     var fn = mod > 0 ? add_box : remove_box;
+      if (c.kind == "E") {
+        var mod = c.rhs - c.lhs;
+        var fn = mod > 0 ? add_box : remove_box;
 
-    //     _.each(_.range(mod), fn);
-    //   }
-    // });
+        _.each(_.range(Math.abs(mod)), fn);
+      }
+    });
 
   };
 
