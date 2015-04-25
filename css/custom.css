@@ -22,13 +22,13 @@ html, body {
 }
 
 rect {
-  fill: steelblue;
+  fill: #f56753;
   stroke: white;
   stroke-width: 10px;
 }
 
 rect.marathon {
-  fill: #E82A78;
+  fill: #9351e5;
 }
 
 .sidebar {
@@ -82,11 +82,11 @@ rect.marathon {
 }
 
 .marathon-tasks .value {
-  color: #E82A78;
+  color: #9351e5;
 }
 
 .spark-tasks .value {
-  color: #28C268;
+  color: #f56753;
 }
 
 .cassandra-tasks .value {

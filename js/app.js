@@ -163,9 +163,23 @@ $(function() {
   var selectors = {
     total: document.querySelector(".total-tasks .value"),
     marathon: document.querySelector(".marathon-tasks .value"),
-    spark: document.querySelector(".spark-tasks .value"),
-    cassandra: document.querySelector(".cassandra-tasks .value")
+    spark: document.querySelector(".spark-tasks .value")
+    // cassandra: document.querySelector(".cassandra-tasks .value")
   };
+
+  function animateCount (el, end) {
+    d3.select(el).interrupt()
+      .data([end])
+      .transition()
+      .duration(500)
+        .tween("text", function(d) {
+           var i = d3.interpolate(this.textContent, d);
+
+           return function(t) {
+             this.textContent = Math.round(i(t)) | 0;
+           };
+         });
+  }
 
   var state = [ {}, {} ];
 
@@ -180,11 +194,15 @@ $(function() {
       return memo + count;
     }, 0);
 
-    selectors.total.textContent = totalTasks;
+    // Total
+    animateCount(selectors.total, totalTasks);
+    // Apps
     _.each(lastState, function (count, app) {
-      if (selectors[app]) {
-        selectors[app].textContent = count;
+      if (!selectors[app]) {
+        return;
       }
+
+      animateCount(selectors[app], count);
     });
 
     var boxes = [];
