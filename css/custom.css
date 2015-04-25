@@ -23,11 +23,13 @@ html, body {
 
 rect {
   fill: steelblue;
-  fill-opacity: .8;
   stroke: white;
+  stroke-width: 10px;
 }
 
-
+rect.marathon {
+  fill: #E82A78;
+}
 
 .sidebar {
   background-color: #222735;

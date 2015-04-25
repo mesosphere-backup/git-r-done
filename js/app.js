@@ -3,7 +3,7 @@ MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 
 REFRESH = true;
 INTERVAL = 2000;
-BOX_DURATION = 0;
+BOX_DURATION = 2000;
 
 
 $(function() {
@@ -59,56 +59,20 @@ $(function() {
     return _.sortBy([width, height], function(n) { return n })[0];
   };
 
-  var ratio = shortest() / (dh + 50);
+  var ratio = shortest() / dh;
 
-  // vis.attr("transform",
-  //   "translate(" + [ dh*ratio, dh*ratio ] + ")scale(" + ratio +")");
+  vis.attr("transform",
+    "translate(" + [ 0, 0 ] + ")scale(" + ratio +")");
 
-  var add_box = function() {
+  var calculate_size = function(n) {
 
-    total += 1;
-    var coords = [0, 0];
-    var r = 0;
-    var l = 1;
+    var r = Math.floor(Math.ceil(Math.sqrt(n))/2);
+    var l = (r*2) + 1;
 
-    // XXX - OFF BY ONE BITCHES
-    if (total > 1) {
+    return [r, l];
+  };
 
-      var n = total;
-
-      r = Math.floor(Math.ceil(Math.sqrt(n))/2);
-      l = (r*2) + 1;
-      var ring_index = n - Math.pow(l-2, 2) -1;
-
-      var matrix = [
-        [[-r, r], [1, 0]],
-        [[r, r], [0, -1]],
-        [[r, -r], [-1, 0]],
-        [[-r, -r], [0, 1]]
-      ];
-
-      var base = matrix[Math.floor(ring_index/(l-1))];
-      var mult = ring_index % (l - 1) + 1;
-
-      coords = [
-        base[0][0] + base[1][0] * mult,
-        base[0][1] + base[1][1] * mult
-      ];
-
-    }
-
-    vis.append("svg:rect")
-      .attr("x", coords[0] * dh + dh/2)
-      .attr("y", coords[1] * dh + dh/2)
-      .attr("width", 0)
-      .attr("height", 0)
-      .transition()
-      .duration(BOX_DURATION)
-      .attr("x", coords[0] * dh)
-      .attr("y", coords[1] * dh)
-      .attr("width", dh)
-      .attr("height", dh);
-
+  var set_canvas = function(r, l) {
     var ratio = shortest() / (l * dh);
     var edge = dh*r*ratio;
 
@@ -117,37 +81,86 @@ $(function() {
       .duration(1000)
       .attr("transform",
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
-  };
+  }
 
-  var remove_box = function() {
-    var elem = d3.select(vis.selectAll("rect")[0].pop());
+  var box_fns = {
+    "add": function(name) {
 
-    var coords = [
-      parseFloat(elem.attr("x")),
-      parseFloat(elem.attr("y"))
-    ];
+      total += 1;
+      var coords = [0, 0];
+      var r = 0;
+      var l = 1;
 
-    elem
-      .transition()
-      .duration(BOX_DURATION)
-      .attr("x", coords[0] + dh/2)
-      .attr("y", coords[1] + dh/2)
-      .attr("width", 0)
-      .attr("height", 0)
-      .remove();
+      // XXX - OFF BY ONE BITCHES
+      if (total > 1) {
+
+        var n = total;
+
+        var size = calculate_size(n);
+
+        r = size[0];
+        l = size[1];
+
+        var ring_index = n - Math.pow(l-2, 2) -1;
+
+        var matrix = [
+          [[-r, r], [1, 0]],
+          [[r, r], [0, -1]],
+          [[r, -r], [-1, 0]],
+          [[-r, -r], [0, 1]]
+        ];
+
+        var base = matrix[Math.floor(ring_index/(l-1))];
+        var mult = ring_index % (l - 1) + 1;
+
+        coords = [
+          base[0][0] + base[1][0] * mult,
+          base[0][1] + base[1][1] * mult
+        ];
+
+      }
+
+      vis.append("svg:rect")
+        .classed("show", true)
+        .classed(name, true)
+        .attr("x", coords[0] * dh + dh/2)
+        .attr("y", coords[1] * dh + dh/2)
+        .attr("width", 0)
+        .attr("height", 0)
+        .transition()
+        .duration(BOX_DURATION)
+        .attr("x", coords[0] * dh)
+        .attr("y", coords[1] * dh)
+        .attr("width", dh)
+        .attr("height", dh);
+
+      set_canvas(r, l);
+    },
+    "remove": function(name) {
+      var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
+
+      var coords = [
+        parseFloat(elem.attr("x")),
+        parseFloat(elem.attr("y"))
+      ];
+
+      elem
+        .classed("show", false)
+        .transition()
+        .duration(BOX_DURATION)
+        .attr("x", coords[0] + dh/2)
+        .attr("y", coords[1] + dh/2)
+        .attr("width", 0)
+        .attr("height", 0)
+        .remove();
+
+      total -= 1;
+      var size = calculate_size(total);
+      set_canvas(size[0], size[1]);
+    }
   };
 
   var state = [ {}, {} ];
-
-  _.each(_.range(10), add_box);
-  add_box();
-
-  var selectors = {
-    total: document.querySelector(".total-tasks .value"),
-    marathon: document.querySelector(".marathon-tasks .value"),
-    spark: document.querySelector(".spark-tasks .value"),
-    cassandra: document.querySelector(".cassandra-tasks .value")
-  };
 
   var handle_updates = function(e, tasks) {
     state.shift();
@@ -155,33 +168,37 @@ $(function() {
 
     var changes = diff(state[0], state[1]);
 
-    var lastState = _.last(state);
-    var totalTasks = _.reduce(lastState, function (memo, count, app) {
-      return memo + count;
-    }, 0);
+    var boxes = [];
+    _.each(changes, function(c) {
 
-    selectors.total.textContent = totalTasks;
-    _.each(lastState, function (count, app) {
-      if (selectors[app]) {
-        selectors[app].textContent = count;
+      // XXX - YES, THIS IS LAZY, I KNOW WHAT I'M DOING
+
+      if (c.kind == "N") {
+        _.each(_.range(c.rhs), function() {
+          boxes.push({
+            "method": "add",
+            "fw": c.path[0]
+          });
+        });
       }
+
+      if (c.kind == "E") {
+        var mod = c.rhs - c.lhs;
+        var fn = mod > 0 ? "add" : "remove";
+
+        _.each(_.range(Math.abs(mod)), function() {
+          boxes.push({
+            "method": fn,
+            "fw": c.path[0]
+          });
+        });
+      }
+
     });
 
-    // _.each(changes, function(c) {
-    //   console.log(c);
-
-    //   if (c.kind == "N") {
-    //     _.each(_.range(c.rhs), add_box);
-    //   }
-
-    //   if (c.kind == "E") {
-    //     var mod = c.rhs - c.lhs;
-    //     var fn = mod > 0 ? add_box : remove_box;
-
-    //     _.each(_.range(mod), fn);
-    //   }
-    // });
-
+    _.each(_.shuffle(boxes), function(b) {
+      box_fns[b.method](b.fw);
+    });
   };
 
   $("body").on("new_data", handle_updates);
