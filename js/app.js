@@ -179,7 +179,7 @@ $(function() {
     d3.select(el).interrupt()
       .data([end])
       .transition()
-      .duration(500)
+      .duration(1000)
         .tween("text", function(d) {
            var i = d3.interpolate(this.textContent, d);
 

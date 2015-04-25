@@ -13,6 +13,7 @@ html, body {
   background-image: url("../images/grid.png");
   height: 100%;
   flex-grow: 1;
+  padding: 72px;
 }
 
 .canvas {
