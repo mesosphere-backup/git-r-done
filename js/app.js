@@ -142,11 +142,30 @@ $(function() {
   _.each(_.range(10), add_box);
   add_box();
 
+  var selectors = {
+    total: document.querySelector(".total-tasks .value"),
+    marathon: document.querySelector(".marathon-tasks .value"),
+    spark: document.querySelector(".spark-tasks .value"),
+    cassandra: document.querySelector(".cassandra-tasks .value")
+  };
+
   var handle_updates = function(e, tasks) {
     state.shift();
     state.push(tasks);
 
     var changes = diff(state[0], state[1]);
+
+    var lastState = _.last(state);
+    var totalTasks = _.reduce(lastState, function (memo, count, app) {
+      return memo + count;
+    }, 0);
+
+    selectors.total.textContent = totalTasks;
+    _.each(lastState, function (count, app) {
+      if (selectors[app]) {
+        selectors[app].textContent = count;
+      }
+    });
 
     // _.each(changes, function(c) {
     //   console.log(c);

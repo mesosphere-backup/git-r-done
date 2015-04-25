@@ -55,17 +55,17 @@ rect {
 }
 
 
-.tasks-total .value {
+.total-tasks .value {
   font-size: 96px;
   line-height: 113px;
 }
 
-.tasks-total .description {
+.total-tasks .description {
   font-size: 32px;
   line-height: 38px
 }
 
-.tasks-total {
+.total-tasks {
   margin-top: 93px;
   margin-bottom: 50px;
 }
