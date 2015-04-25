@@ -76,7 +76,7 @@ $(function() {
     return [r, l];
   };
 
-  var set_canvas = function(r, l, len) {
+  var set_canvas = function(r, l) {
     var ratio = shortest() / (l * dh);
     var edge = dh*r*ratio;
 
@@ -89,47 +89,45 @@ $(function() {
 
   var current_r = 0;
 
+  var get_coords = function(n) {
+    var size = calculate_size(n);
+
+    var r = size[0];
+    var l = size[1];
+
+    var ring_index = n - Math.pow(l-2, 2) -1;
+
+    var matrix = [
+      [[-r, r], [1, 0]],
+      [[r, r], [0, -1]],
+      [[r, -r], [-1, 0]],
+      [[-r, -r], [0, 1]]
+    ];
+
+    var base = matrix[Math.floor(ring_index/(l-1))];
+    var mult = ring_index % (l - 1) + 1;
+
+    return [
+      base[0][0] + base[1][0] * mult,
+      base[0][1] + base[1][1] * mult
+    ];
+  };
+
   var box_fns = {
     "add": function(name) {
 
       total += 1;
       var coords = [0, 0];
-      var r = 0;
-      var l = 1;
 
       // XXX - OFF BY ONE BITCHES
       if (total > 1) {
-
-        var n = total;
-
-        var size = calculate_size(n);
-
-        r = size[0];
-        l = size[1];
-
-        var ring_index = n - Math.pow(l-2, 2) -1;
-
-        var matrix = [
-          [[-r, r], [1, 0]],
-          [[r, r], [0, -1]],
-          [[r, -r], [-1, 0]],
-          [[-r, -r], [0, 1]]
-        ];
-
-        var base = matrix[Math.floor(ring_index/(l-1))];
-        var mult = ring_index % (l - 1) + 1;
-
-        coords = [
-          base[0][0] + base[1][0] * mult,
-          base[0][1] + base[1][1] * mult
-        ];
-
+        coords = get_coords(total);
       }
 
       vis.append("svg:rect")
         .classed("show", true)
         .classed(name, true)
-        .attr("n", n)
+        .attr("n", total)
         .attr("x", coords[0] * dh + dh/2)
         .attr("y", coords[1] * dh + dh/2)
         .attr("width", 0)
@@ -144,9 +142,6 @@ $(function() {
     },
     "remove": function(name, i) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
-
-
-      console.log(total, parseInt(elem.attr("n")));
 
       var coords = [
         parseFloat(elem.attr("x")),
@@ -163,9 +158,28 @@ $(function() {
         .attr("height", 0)
         .remove();
 
+      var to_shift = total - parseInt(elem.attr("n"));
+      if (to_shift > 0) {
+        box_fns.shift(_.last(vis.selectAll("rect.show")[0], to_shift));
+      }
+
       total -= 1;
-      // var size = calculate_size(total);
-      // set_canvas(size[0], size[1]);
+      var size = calculate_size(total);
+      set_canvas(size[0], size[1]);
+    },
+    "shift": function(elems) {
+      d3.selectAll(elems)
+        .attr("n", function() {
+          return parseInt(d3.select(this).attr("n")) - 1;
+        })
+        .transition()
+        .duration(RING_DURATION)
+        .attr("x", function() {
+          return get_coords(parseInt(d3.select(this).attr("n")))[0] * dh;
+        })
+        .attr("y", function() {
+          return get_coords(parseInt(d3.select(this).attr("n")))[1] * dh;
+        })
     }
   };
 
@@ -274,10 +288,10 @@ $(function() {
 
   $("body").on("new_data", handle_updates);
 
-  // async.whilst(
-  //   function () { return REFRESH }.bind(this),
-  //   fetchState,
-  //   function () { }
-  // );
+  async.whilst(
+    function () { return REFRESH }.bind(this),
+    fetchState,
+    function () { }
+  );
 
 });
