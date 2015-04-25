@@ -98,11 +98,11 @@ $(function() {
     var ratio = shortest() / (l * dh);
     var edges = [dh*r*ratio, dh*r*ratio];
 
-    // if (shortest() == width) {
-    //   edges[1] += Math.abs(width - height) / 2;
-    // } else {
-    //   edges[0] += Math.abs(width - height) / 2;
-    // }
+    if (shortest() == width) {
+      edges[1] += Math.abs(width - height) / 2;
+    } else {
+      edges[0] += Math.abs(width - height) / 2;
+    }
 
     vis.transition()
       .duration(RING_DURATION)
