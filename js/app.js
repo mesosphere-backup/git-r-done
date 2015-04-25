@@ -1,5 +1,4 @@
 
-// MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 MESOS_MASTER = "http://23.100.89.65:5050/"
 
 REFRESH = true;
@@ -10,6 +9,11 @@ ZOOM_DURATION = 1000;
 
 
 $(function() {
+
+  if (location.hash != "") {
+    MESOS_MASTER = "http://" + location.hash.slice(1) + ":5050/"
+  }
+
 
   var diff = DeepDiff.diff;
 
