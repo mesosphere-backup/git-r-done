@@ -1,5 +1,5 @@
 
-MESOS_MASTER = "http://23.100.89.65:5050/"
+var MESOS_MASTER = "http://localhost:5050/";
 
 REFRESH = true;
 INTERVAL = 2000;
