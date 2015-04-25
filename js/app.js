@@ -96,13 +96,20 @@ $(function() {
 
   var set_canvas = function(r, l) {
     var ratio = shortest() / (l * dh);
-    var edge = dh*r*ratio;
+    var edges = [dh*r*ratio, dh*r*ratio];
+
+    // if (shortest() == width) {
+    //   edges[1] += height/4;
+    // } else {
+    //   edges[0] += width/4;
+    // }
 
     vis.transition()
       .duration(RING_DURATION)
       .ease("linear")
       .attr("transform",
-        "translate(" + [edge , edge] + ")scale(" + ratio + ")");
+        "translate(" + edges +
+          ")scale(" + ratio + ")");
   }
 
   var current_r = 0;
@@ -263,8 +270,6 @@ $(function() {
       if (c.kind == "E") {
         var mod = c.rhs - c.lhs;
         var fn = mod > 0 ? "add" : "remove";
-
-        if (mod < 0) { return; }
 
         _.each(_.range(Math.abs(mod)), function() {
           boxes.push({
