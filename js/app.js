@@ -5,6 +5,7 @@ REFRESH = true;
 INTERVAL = 2000;
 BOX_DURATION = 2000;
 RING_DURATION = 500;
+ZOOM_DURATION = 1000;
 
 
 $(function() {
@@ -82,7 +83,7 @@ $(function() {
     ttl = Date.now();
     vis.interrupt()
       .transition()
-      .duration(500)
+      .duration(ZOOM_DURATION)
       .attr("transform",
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   }
@@ -90,7 +91,7 @@ $(function() {
   var current_r = 0;
 
   var box_fns = {
-    "add": function(name, cb) {
+    "add": function(name) {
 
       total += 1;
       var coords = [0, 0];
@@ -126,33 +127,24 @@ $(function() {
 
       }
 
-      var wait = Math.floor(RING_DURATION / (l * 4));
+      vis.append("svg:rect")
+        .classed("show", true)
+        .classed(name, true)
+        .attr("x", coords[0] * dh + dh/2)
+        .attr("y", coords[1] * dh + dh/2)
+        .attr("width", 0)
+        .attr("height", 0)
+        .transition()
+        .duration(BOX_DURATION)
+        .attr("x", coords[0] * dh)
+        .attr("y", coords[1] * dh)
+        .attr("width", dh)
+        .attr("height", dh);
 
-      _.delay(function() {
-        vis.append("svg:rect")
-          .classed("show", true)
-          .classed(name, true)
-          .attr("x", coords[0] * dh + dh/2)
-          .attr("y", coords[1] * dh + dh/2)
-          .attr("width", 0)
-          .attr("height", 0)
-          .transition()
-          .duration(BOX_DURATION)
-          .attr("x", coords[0] * dh)
-          .attr("y", coords[1] * dh)
-          .attr("width", dh)
-          .attr("height", dh);
-
-        if (r != current_r) {
-          console.log(wait);
-          current_r = r;
-          set_canvas(r, l);
-        }
-
-        cb();
-      }, wait);
-
-
+      if (r != current_r) {
+        current_r = r;
+        set_canvas(r, l);
+      }
     },
     "remove": function(name, i) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
@@ -251,8 +243,22 @@ $(function() {
 
     });
 
-    async.eachSeries(_.shuffle(boxes), function(b, cb) {
-      box_fns[b.method](b.fw, cb);
+    var parts = _.reduce(_.shuffle(boxes), function(acc, v, k) {
+      var i = calculate_size(k + total + 1)[0];
+
+      if (acc.length < i + 1) { acc.push([]); }
+      acc[i].push(v);
+      return acc;
+    }, []);
+
+    async.eachSeries(parts, function(boxes, cb) {
+      var wait = Math.floor(RING_DURATION / boxes.length);
+
+      _.each(boxes, function(b, i) {
+        _.delay(box_fns[b.method], wait * i, b.fw);
+      });
+
+      _.delay(cb, RING_DURATION);
     }, function() { });
   };
 
