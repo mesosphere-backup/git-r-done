@@ -55,6 +55,8 @@ $(function() {
 
   var translation = 0;
 
+  var all_boxes = [];
+
   var total = 0;
 
   var shortest = function() {
@@ -74,16 +76,13 @@ $(function() {
     return [r, l];
   };
 
-  var ttl = Date.now()
-  var set_canvas = function(r, l) {
+  var set_canvas = function(r, l, len) {
     var ratio = shortest() / (l * dh);
     var edge = dh*r*ratio;
 
-    console.log(l * 4, Date.now() - ttl);
-    ttl = Date.now();
-    vis.interrupt()
-      .transition()
-      .duration(ZOOM_DURATION)
+    vis.transition()
+      .duration(RING_DURATION)
+      .ease("linear")
       .attr("transform",
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   }
@@ -141,10 +140,6 @@ $(function() {
         .attr("width", dh)
         .attr("height", dh);
 
-      if (r != current_r) {
-        current_r = r;
-        set_canvas(r, l);
-      }
     },
     "remove": function(name, i) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
@@ -165,8 +160,8 @@ $(function() {
         .remove();
 
       total -= 1;
-      var size = calculate_size(total);
-      set_canvas(size[0], size[1]);
+      // var size = calculate_size(total);
+      // set_canvas(size[0], size[1]);
     }
   };
 
@@ -244,20 +239,31 @@ $(function() {
     });
 
     var parts = _.reduce(_.shuffle(boxes), function(acc, v, k) {
-      var i = calculate_size(k + total + 1)[0];
+      var i = calculate_size(k + total + 1);
 
-      if (acc.length < i + 1) { acc.push([]); }
-      acc[i].push(v);
+      _.each(_.range((i[0] + 1) - acc.length), function() {
+        acc.push({
+          s: i,
+          data: []
+        });
+      });
+
+      acc[i[0]].data.push(v);
       return acc;
     }, []);
 
-    async.eachSeries(parts, function(boxes, cb) {
-      var wait = Math.floor(RING_DURATION / boxes.length);
+    parts = _.filter(parts, function(p) {
+      return p.data.length > 0;
+    });
 
-      _.each(boxes, function(b, i) {
+    async.eachSeries(parts, function(boxes, cb) {
+      var wait = Math.floor(RING_DURATION / boxes.data.length);
+
+      _.each(boxes.data, function(b, i) {
         _.delay(box_fns[b.method], wait * i, b.fw);
       });
 
+      set_canvas(boxes.s[0], boxes.s[1], 2);
       _.delay(cb, RING_DURATION);
     }, function() { });
   };
