@@ -4,6 +4,7 @@ MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
 REFRESH = true;
 INTERVAL = 2000;
 BOX_DURATION = 2000;
+RING_DURATION = 500;
 
 
 $(function() {
@@ -72,14 +73,16 @@ $(function() {
     return [r, l];
   };
 
+  var ttl = Date.now()
   var set_canvas = function(r, l) {
     var ratio = shortest() / (l * dh);
     var edge = dh*r*ratio;
 
-    console.log(ratio, edge);
+    console.log(l * 4, Date.now() - ttl);
+    ttl = Date.now();
     vis.interrupt()
       .transition()
-      .duration(250 * r)
+      .duration(500)
       .attr("transform",
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   }
@@ -87,7 +90,7 @@ $(function() {
   var current_r = 0;
 
   var box_fns = {
-    "add": function(name) {
+    "add": function(name, cb) {
 
       total += 1;
       var coords = [0, 0];
@@ -123,6 +126,8 @@ $(function() {
 
       }
 
+      var wait = Math.floor(RING_DURATION / (l * 4));
+
       _.delay(function() {
         vis.append("svg:rect")
           .classed("show", true)
@@ -137,14 +142,19 @@ $(function() {
           .attr("y", coords[1] * dh)
           .attr("width", dh)
           .attr("height", dh);
-      }, (5000 / (r*8)) * ring_index);
 
-      if (r != current_r) {
-        current_r = r;
-        set_canvas(r, l);
-      }
+        if (r != current_r) {
+          console.log(wait);
+          current_r = r;
+          set_canvas(r, l);
+        }
+
+        cb();
+      }, wait);
+
+
     },
-    "remove": function(name) {
+    "remove": function(name, i) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
 
       var coords = [
@@ -241,9 +251,9 @@ $(function() {
 
     });
 
-    _.each(_.shuffle(boxes), function(b, i) {
-      box_fns[b.method](b.fw);
-    });
+    async.eachSeries(_.shuffle(boxes), function(b, cb) {
+      box_fns[b.method](b.fw, cb);
+    }, function() { });
   };
 
   $("body").on("new_data", handle_updates);
