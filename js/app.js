@@ -270,10 +270,10 @@ $(function() {
 
   $("body").on("new_data", handle_updates);
 
-  // async.whilst(
-  //   function () { return REFRESH }.bind(this),
-  //   fetchState,
-  //   function () { }
-  // );
+  async.whilst(
+    function () { return REFRESH }.bind(this),
+    fetchState,
+    function () { }
+  );
 
 });
