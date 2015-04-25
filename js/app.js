@@ -76,12 +76,15 @@ $(function() {
     var ratio = shortest() / (l * dh);
     var edge = dh*r*ratio;
 
+    console.log(ratio, edge);
     vis.interrupt()
       .transition()
-      .duration(1000)
+      .duration(250 * r)
       .attr("transform",
         "translate(" + [edge , edge] + ")scale(" + ratio + ")");
   }
+
+  var current_r = 0;
 
   var box_fns = {
     "add": function(name) {
@@ -120,21 +123,26 @@ $(function() {
 
       }
 
-      vis.append("svg:rect")
-        .classed("show", true)
-        .classed(name, true)
-        .attr("x", coords[0] * dh + dh/2)
-        .attr("y", coords[1] * dh + dh/2)
-        .attr("width", 0)
-        .attr("height", 0)
-        .transition()
-        .duration(BOX_DURATION)
-        .attr("x", coords[0] * dh)
-        .attr("y", coords[1] * dh)
-        .attr("width", dh)
-        .attr("height", dh);
+      _.delay(function() {
+        vis.append("svg:rect")
+          .classed("show", true)
+          .classed(name, true)
+          .attr("x", coords[0] * dh + dh/2)
+          .attr("y", coords[1] * dh + dh/2)
+          .attr("width", 0)
+          .attr("height", 0)
+          .transition()
+          .duration(BOX_DURATION)
+          .attr("x", coords[0] * dh)
+          .attr("y", coords[1] * dh)
+          .attr("width", dh)
+          .attr("height", dh);
+      }, (5000 / (r*8)) * ring_index);
 
-      set_canvas(r, l);
+      if (r != current_r) {
+        current_r = r;
+        set_canvas(r, l);
+      }
     },
     "remove": function(name) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
@@ -215,17 +223,17 @@ $(function() {
 
     });
 
-    _.each(_.shuffle(boxes), function(b) {
+    _.each(_.shuffle(boxes), function(b, i) {
       box_fns[b.method](b.fw);
     });
   };
 
   $("body").on("new_data", handle_updates);
 
-  async.whilst(
-    function () { return REFRESH }.bind(this),
-    fetchState,
-    function () { }
-  );
+  // async.whilst(
+  //   function () { return REFRESH }.bind(this),
+  //   fetchState,
+  //   function () { }
+  // );
 
 });
