@@ -1,5 +1,6 @@
 
-MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
+// MESOS_MASTER = "http://demo-bliss.mesosphere.com:5050/"
+MESOS_MASTER = "http://23.100.89.65:5050/"
 
 REFRESH = true;
 INTERVAL = 2000;
@@ -30,12 +31,29 @@ $(function() {
 
   };
 
+  // var fetchState = function(cb) {
+  //   $.getJSON(url + "?jsonp=?").done(function(data) {
+  //     $("body").trigger("new_data",
+  //       [_.reduce(data.frameworks, function(acc, fw) {
+  //         var tasks = get_tasks(fw);
+  //         acc[tasks.name] = tasks.task_count;
+  //         return acc;
+  //       }, {})]);
+  //     _.delay(cb, INTERVAL);
+  //   });
+  // };
+
   var fetchState = function(cb) {
     $.getJSON(url + "?jsonp=?").done(function(data) {
       $("body").trigger("new_data",
-        [_.reduce(data.frameworks, function(acc, fw) {
-          var tasks = get_tasks(fw);
-          acc[tasks.name] = tasks.task_count;
+        [_.reduce(data.frameworks[0].tasks, function(acc, t) {
+          if (t.state != "TASK_RUNNING") { return acc; }
+
+          if (t.name == "basicdock") { t.name = "marathon"; }
+
+          if (!_.has(acc, t.name)) { acc[t.name] = 0; }
+
+          acc[t.name] += 1;
           return acc;
         }, {})]);
       _.delay(cb, INTERVAL);
