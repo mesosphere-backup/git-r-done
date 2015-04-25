@@ -160,6 +160,13 @@ $(function() {
     }
   };
 
+  var selectors = {
+    total: document.querySelector(".total-tasks .value"),
+    marathon: document.querySelector(".marathon-tasks .value"),
+    spark: document.querySelector(".spark-tasks .value"),
+    cassandra: document.querySelector(".cassandra-tasks .value")
+  };
+
   var state = [ {}, {} ];
 
   var handle_updates = function(e, tasks) {
@@ -167,6 +174,18 @@ $(function() {
     state.push(tasks);
 
     var changes = diff(state[0], state[1]);
+
+    var lastState = _.last(state);
+    var totalTasks = _.reduce(lastState, function (memo, count, app) {
+      return memo + count;
+    }, 0);
+
+    selectors.total.textContent = totalTasks;
+    _.each(lastState, function (count, app) {
+      if (selectors[app]) {
+        selectors[app].textContent = count;
+      }
+    });
 
     var boxes = [];
     _.each(changes, function(c) {
