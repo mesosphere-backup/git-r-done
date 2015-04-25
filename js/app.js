@@ -228,6 +228,8 @@ $(function() {
         var mod = c.rhs - c.lhs;
         var fn = mod > 0 ? "add" : "remove";
 
+        if (mod < 0) { return; }
+
         _.each(_.range(Math.abs(mod)), function() {
           boxes.push({
             "method": fn,
