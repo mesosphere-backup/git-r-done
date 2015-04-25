@@ -31,6 +31,10 @@ rect.marathon {
   fill: #E82A78;
 }
 
+rect.spark {
+  fill: #28C268;
+}
+
 .sidebar {
   background-color: #222735;
   overflow: hidden;
