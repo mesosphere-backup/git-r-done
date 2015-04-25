@@ -129,6 +129,7 @@ $(function() {
       vis.append("svg:rect")
         .classed("show", true)
         .classed(name, true)
+        .attr("n", n)
         .attr("x", coords[0] * dh + dh/2)
         .attr("y", coords[1] * dh + dh/2)
         .attr("width", 0)
@@ -143,6 +144,9 @@ $(function() {
     },
     "remove": function(name, i) {
       var elem = d3.select(vis.selectAll("rect.show." + name)[0].pop());
+
+
+      console.log(total, parseInt(elem.attr("n")));
 
       var coords = [
         parseFloat(elem.attr("x")),
