@@ -49,15 +49,23 @@ $(function() {
 
   var fetchState = function(cb) {
     $.getJSON(url + "?jsonp=?").done(function(data) {
+
+      var tasks = _.flatten(_.pluck(data.frameworks, "tasks"));
+      console.log(tasks);
+
       $("body").trigger("new_data",
-        [_.reduce(data.frameworks[0].tasks, function(acc, t) {
+        [_.reduce(tasks, function(acc, t) {
+
           if (t.state != "TASK_RUNNING") { return acc; }
 
           if (t.name == "basicdock") { t.name = "marathon"; }
 
           if (!_.has(acc, t.name)) { acc[t.name] = 0; }
 
-          acc[t.name] += 1;
+          if (_.indexOf(["marathon", "spark"], t.name) >= 0) {
+            acc[t.name] += 1;
+          }
+
           return acc;
         }, {})]);
       _.delay(cb, INTERVAL);
